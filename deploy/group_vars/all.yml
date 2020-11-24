@@ -8,7 +8,7 @@ ansible_connection: local
 # ENV-specific vars #
 #####################
 
-env: "qa-test"
+env: "dev"
 
 #################
 # ROLES globals #
