@@ -1,0 +1,37 @@
+- cloudformation_info:
+    region: "{{ region }}"
+    stack_name: "{{ cf_stack_name }}"
+  register: stack_info
+
+- set_fact:
+    vpc_id: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.VPCID }}"
+    a_stack_az: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.AStackAZ }}"
+    a_stack_pub_subnet: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.APublicSubnetID }}"
+    a_stack_priv_subnet: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.APrivateSubnetID }}"
+    b_stack_az: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.BStackAZ }}"
+    b_stack_pub_subnet: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.BPublicSubnetID }}"
+    b_stack_priv_subnet: "{{ stack_info.cloudformation[cf_stack_name].stack_outputs.BPrivateSubnetID }}"
+  
+- name: "Generate eks-cluster-config.yml"
+  template:
+    src: "eks-cluster-config.yml.j2"
+    dest: /tmp/eks-cluster-config.yml
+
+# populate a clusters_exist list with names of clusters devided by TAB "\t"
+- name: "Getting existing clusters list"
+  command: "aws --region {{ region }} eks list-clusters --query '[clusters'] --output text"
+  register: clusters_exist
+
+# create a list from the clusters_exist
+- set_fact:
+    found_clusters_list: "{{ clusters_exist.stdout.split('\t') }}"
+
+- name: "Setting eksctl action to either Create or Update"
+  set_fact:
+    eksctl_action: "{{ 'create' if (eks_cluster_name not in found_clusters_list) else 'update' }}"
+
+- name: "Running eksctl eksctl_action {{ eksctl_action | upper }} cluster with name {{ eks_cluster_name | upper }}"
+  command: "eksctl {{ eksctl_action }} cluster -f /tmp/eks-cluster-config.yml"
+
+- name: "Update aws-auth ConfigMap with the EKS root user {{ eks_root_user_name | upper }}"
+  command: "eksctl --region {{ region }} create iamidentitymapping --cluster {{ eks_cluster_name }} --arn {{ eks_root_user_arn }} --group system:masters --username {{  eks_root_user_name }}"

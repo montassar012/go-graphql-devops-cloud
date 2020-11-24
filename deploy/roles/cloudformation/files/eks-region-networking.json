@@ -1,0 +1,69 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description" : "AWS CloudFormation Region Networking stack for Kubernetes cluster",
+  
+    "Parameters" : {
+  
+      "VPCCIDRBlock": {
+        "Description": "VPC CidrBlock",
+        "Type": "String"
+      },
+      "EKSClusterName": {
+        "Description": "EKS cluster name",
+        "Type": "String"
+     }
+  
+    },
+  
+    "Resources" : {
+  
+      "VPC" : {
+        "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+          "CidrBlock" : { "Ref": "VPCCIDRBlock" },
+          "EnableDnsHostnames": true,
+          "EnableDnsSupport": true,
+          "Tags" : [
+            {
+              "Key" : "Name",
+              "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "vpc"] ] } },
+            {
+              "Key" : { "Fn::Join" : [ "", [ "kubernetes.io/cluster/", {"Ref" : "EKSClusterName"}] ] },
+              "Value" : "owned"
+            }
+          ]
+        }
+      },
+  
+      "InternetGateway" : {
+        "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [
+            {"Key" : "Name", "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "igw"] ] } }
+          ]
+        }
+      },
+  
+      "AttachGateway" : {
+         "Type" : "AWS::EC2::VPCGatewayAttachment",
+         "Properties" : {
+           "VpcId" : { "Ref" : "VPC" },
+           "InternetGatewayId" : { "Ref" : "InternetGateway" }
+         }
+      }
+  
+    },
+  
+    "Outputs" : {
+  
+      "VPCID" : {
+        "Description" : "EKS VPC ID",
+        "Value" : { "Ref" : "VPC" }
+      },
+      "IGWID" : {
+        "Description" : "InternetGateway ID",
+        "Value" : { "Ref" : "InternetGateway" }
+      }
+  
+    }
+  }

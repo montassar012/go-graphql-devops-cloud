@@ -1,0 +1,188 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description" : "AWS CloudFormation AvailabilityZones Networking stack for Kubernetes cluster",
+  
+    "Parameters" : {
+      "VPCID": {
+        "Description": "VPC for resources",
+        "Type": "String"
+      },
+      "EKSClusterName": {
+        "Description": "EKS cluster name",
+        "Type": "String"
+      },
+      "PublicSubnetCIDR": {
+        "Description": "PublicSubnetCIDR",
+        "Type": "String"
+      },
+      "PrivateSubnetCIDR": {
+        "Description": "PrivateSubnetCIDR",
+        "Type": "String"
+      },
+      "AZ": {
+        "Description": "AvailabilityZone for resources",
+        "Type": "String"
+      },
+      "IGWID": {
+        "Description": "InternetGateway for PublicRoutes",
+        "Type": "String"
+      }
+    },
+  
+    "Resources" : {
+  
+      "PublicSubnet" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+          "VpcId" : { "Ref" : "VPCID" },
+          "CidrBlock" : {"Ref" : "PublicSubnetCIDR"},
+          "AvailabilityZone" : { "Ref": "AZ" },
+          "Tags" : [
+            {
+              "Key" : "Name",
+              "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "public-net", { "Ref": "AZ" } ] ] }
+            },
+            {
+              "Key" : { "Fn::Join" : [ "", [ "kubernetes.io/cluster/", {"Ref" : "EKSClusterName"}] ] },
+              "Value" : "shared"
+            },
+            {
+              "Key" : "kubernetes.io/role/elb",
+              "Value" : "1"
+            }
+          ]
+        }
+      },
+  
+      "PrivateSubnet" : {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+          "VpcId" : { "Ref" : "VPCID" },
+          "CidrBlock" : {"Ref" : "PrivateSubnetCIDR"},
+          "AvailabilityZone" : { "Ref": "AZ" },
+          "Tags" : [
+            {
+              "Key" : "Name",
+              "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "private-net", { "Ref": "AZ" } ] ] }
+            },
+            {
+              "Key" : { "Fn::Join" : [ "", [ "kubernetes.io/cluster/", {"Ref" : "EKSClusterName"}] ] },
+              "Value" : "shared"
+            },
+            {
+              "Key" : "kubernetes.io/role/internal-elb",
+              "Value" : "1"
+            }
+          ]
+        }
+      },
+  
+      "NatGwIPAddress" : {
+        "Type" : "AWS::EC2::EIP",
+        "Properties" : {
+          "Domain" : "vpc"
+        }
+      },
+  
+      "NATGW" : {
+        "DependsOn" : "NatGwIPAddress",
+        "Type" : "AWS::EC2::NatGateway",
+        "Properties" : {
+          "AllocationId" : { "Fn::GetAtt" : ["NatGwIPAddress", "AllocationId"]},
+          "SubnetId" : { "Ref" : "PublicSubnet"},
+          "Tags" : [
+            {"Key" : "Name", "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "nat-gw", { "Ref": "AZ" } ] ] } }
+          ]
+        }
+      },
+  
+      "PublicRouteTable": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "VPCID" },
+          "Tags" : [
+            {"Key" : "Name", "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "public-rtb"] ] } }
+          ]
+        }
+      },
+  
+      "PublicRoute": {
+        "Type": "AWS::EC2::Route",
+        "Properties": {
+          "RouteTableId": {
+            "Ref": "PublicRouteTable"
+          },
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": {
+            "Ref": "IGWID"
+          }
+        }
+      },
+  
+      "PublicSubnetRouteTableAssociation": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "DependsOn": "PublicRouteTable",
+        "Properties": {
+          "SubnetId": {
+            "Ref": "PublicSubnet"
+          },
+          "RouteTableId": {
+            "Ref": "PublicRouteTable"
+          }
+        }
+      },
+  
+      "PrivateRouteTable": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "VPCID" },
+          "Tags" : [
+            {"Key" : "Name", "Value" : { "Fn::Join" : [ "-", [ {"Ref" : "AWS::StackName"}, "priv-route", { "Ref": "AZ" } ] ] } }
+          ]
+        }
+      },
+  
+      "PrivateRoute": {
+        "Type": "AWS::EC2::Route",
+        "Properties": {
+          "RouteTableId": {
+            "Ref": "PrivateRouteTable"
+          },
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "NatGatewayId": {
+            "Ref": "NATGW"
+          }
+        }
+      },
+  
+      "PrivateSubnetRouteTableAssociation": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": {
+            "Ref": "PrivateSubnet"
+          },
+          "RouteTableId": {
+            "Ref": "PrivateRouteTable"
+          }
+        }
+      }
+  
+    },
+  
+    "Outputs" : {
+  
+      "StackAZ" : {
+        "Description" : "Stack location",
+        "Value" : { "Ref" : "AZ" }
+      },
+      "PublicSubnetID" : {
+        "Description" : "PublicSubnet ID",
+        "Value" : { "Ref" : "PublicSubnet" }
+      },
+      "PrivateSubnetID" : {
+        "Description" : "PrivateSubnet ID",
+        "Value" : { "Ref" : "PrivateSubnet" }
+      }
+  
+    }
+  }

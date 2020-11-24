@@ -1,0 +1,29 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: "{{ eks_cluster_name }}"
+  region: "{{ region }}"
+  version: "{{ k8s_version }}"
+nodeGroups:
+  - name: "{{ k8s_worker_nodes_group_name }}"
+    instanceType: "{{ k8s_worker_nodes_instance_type }}"
+    desiredCapacity: {{ k8s_worker_nodes_capacity }}
+    privateNetworking: true
+vpc:
+  id: "{{ vpc_id }}"
+  subnets:
+    public:
+      {{ a_stack_az }}:
+        id: "{{ a_stack_pub_subnet }}"
+      {{ b_stack_az }}:
+        id: "{{ b_stack_pub_subnet }}"
+    private:
+      {{ a_stack_az }}:
+        id: "{{ a_stack_priv_subnet }}"
+      {{ b_stack_az }}:
+        id: "{{ b_stack_priv_subnet }}"
+  nat:
+    gateway: Disable
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]

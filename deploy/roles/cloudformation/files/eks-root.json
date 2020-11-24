@@ -1,0 +1,134 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation stack for Kubernetes cluster",
+  
+    "Parameters": {
+  
+      "VPCCIDRBlock": {
+        "Description": "VPC CidrBlock",
+        "Type": "String",
+        "Default": "10.0.0.0/16"
+      },
+  
+      "EKSClusterName": {
+        "Description": "EKS cluster name",
+        "Type": "String"
+     }
+  
+    },
+  
+    "Mappings": {
+  
+      "AZSubNets": {
+        "public": {
+          "zoneA": "0.0/20",
+          "zoneB": "16.0/20"
+        },
+        "private": {
+          "zoneA": "32.0/20",
+          "zoneB": "48.0/20"
+        }
+      }
+    },
+  
+    "Resources": {
+  
+      "RegionNetworkStack": {
+        "Type": "AWS::CloudFormation::Stack",
+        "Properties": {
+          "TemplateURL": "eks-region-networking.json",
+          "Parameters": {
+            "VPCCIDRBlock": { "Ref": "VPCCIDRBlock" },
+            "EKSClusterName": { "Ref": "EKSClusterName"}
+          }
+        }
+      },
+  
+      "AZNetworkStackA": {
+        "Type": "AWS::CloudFormation::Stack",
+        "Properties": {
+          "TemplateURL": "eks-azs-networking.json",
+          "Parameters": {
+            "VPCID": { "Fn::GetAtt": ["RegionNetworkStack", "Outputs.VPCID"] },
+            "AZ": { "Fn::Select": [ "0", { "Fn::GetAZs": "" } ] },
+            "IGWID": { "Fn::GetAtt": ["RegionNetworkStack", "Outputs.IGWID"] },
+            "EKSClusterName": { "Ref": "EKSClusterName"},
+            "PublicSubnetCIDR": {
+              "Fn::Join" : [".", [
+                { "Fn::Select": [ "0", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::Select": [ "1", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::FindInMap" : [ "AZSubNets", "public", "zoneA" ] }
+              ]]
+            },
+            "PrivateSubnetCIDR": {
+              "Fn::Join" : [".", [
+                { "Fn::Select": [ "0", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::Select": [ "1", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::FindInMap" : [ "AZSubNets", "private", "zoneA" ] }
+              ]]
+            }
+          }
+        }
+      },
+      "AZNetworkStackB": {
+        "Type": "AWS::CloudFormation::Stack",
+        "Properties": {
+          "TemplateURL": "eks-azs-networking.json",
+          "Parameters": {
+            "VPCID": { "Fn::GetAtt": ["RegionNetworkStack", "Outputs.VPCID"] },
+            "AZ": { "Fn::Select": [ "1", { "Fn::GetAZs": "" } ] },
+            "IGWID": { "Fn::GetAtt": ["RegionNetworkStack", "Outputs.IGWID"] },
+            "EKSClusterName": { "Ref": "EKSClusterName"},
+            "PublicSubnetCIDR": {
+              "Fn::Join" : [".", [
+                { "Fn::Select": [ "0", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::Select": [ "1", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::FindInMap" : [ "AZSubNets", "public", "zoneB" ] }
+              ]]
+            },
+            "PrivateSubnetCIDR": {
+              "Fn::Join" : [".", [
+                { "Fn::Select": [ "0", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::Select": [ "1", { "Fn::Split": [".",  { "Ref": "VPCCIDRBlock"} ] } ] },
+                { "Fn::FindInMap" : [ "AZSubNets", "private", "zoneB" ] }
+              ]]
+            }
+          }
+        }
+      }
+  
+    },
+  
+    "Outputs": {
+  
+      "VPCID" : {
+        "Description" : "EKS VPC ID",
+        "Value" : { "Fn::GetAtt": ["RegionNetworkStack", "Outputs.VPCID"] }
+      },
+      "AStackAZ" : {
+        "Description" : "Stack location",
+        "Value" : { "Fn::GetAtt": ["AZNetworkStackA", "Outputs.StackAZ"] }
+      },
+      "APublicSubnetID" : {
+        "Description" : "PublicSubnet ID",
+        "Value" : { "Fn::GetAtt": ["AZNetworkStackA", "Outputs.PublicSubnetID"] }
+      },
+      "APrivateSubnetID" : {
+        "Description" : "PrivateSubnet ID",
+        "Value" : { "Fn::GetAtt": ["AZNetworkStackA", "Outputs.PrivateSubnetID"] }
+      },
+      "BStackAZ" : {
+        "Description" : "Stack location",
+        "Value" : { "Fn::GetAtt": ["AZNetworkStackB", "Outputs.StackAZ"] }
+      },
+      "BPublicSubnetID" : {
+        "Description" : "PublicSubnet ID",
+        "Value" : { "Fn::GetAtt": ["AZNetworkStackB", "Outputs.PublicSubnetID"] }
+      },
+      "BPrivateSubnetID" : {
+        "Description" : "PrivateSubnet ID",
+        "Value" : { "Fn::GetAtt": ["AZNetworkStackB", "Outputs.PrivateSubnetID"] }
+      }
+  
+    }
+  }

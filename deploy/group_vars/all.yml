@@ -1,0 +1,41 @@
+###################
+# ANSIBLE globals #
+###################
+
+ansible_connection: local
+
+#####################
+# ENV-specific vars #
+#####################
+
+env: "qa-test"
+
+#################
+# ROLES globals #
+#################
+
+region: "eu-west-1"
+
+# (THIS) eks_cluster_name: used for EKS service to set an exactly cluster's name - "{{ eks_cluster_name }}"
+# (AUTO) eks_cluster_stack_name: used for CloudFormation service to format a stack's name as "eksctl-{{ eks_cluster_name }}-cluster"
+# (AUTO) eks_nodegroup_stack_name: used for CloudFormation service to format a stack's name as "eksctl-{{ eks_cluster_name }}-nodegroup-{{ worker-nodes-name }}"
+eks_cluster_name: "mkallali-eks-{{ env }}"
+
+# used bythe cloudformation role to st a stack's name
+cf_stack_name: "eksctl-{{ eks_cluster_name }}-stack"
+
+##################
+# ROLES specific #
+##################
+
+# cloudforation role
+vpc_cidr_block: "10.1.0.0/16"
+
+# eksctl role
+k8s_version: 1.18
+k8s_worker_nodes_group_name: "worker-nodes"
+k8s_worker_nodes_instance_type: "t2.micro"
+k8s_worker_nodes_capacity: 2
+
+eks_root_user_name: "eks-root"
+eks_root_user_arn: "arn:aws:iam::$AWS_ACCOUNT_ID:user/eks-root"
