@@ -14,8 +14,9 @@ pipeline {
       steps {
         sh 'echo "TEST PIPELINE"'
         sh '''
+                cd deploy/roles/cloudformation/files/
                 aws --region us-east-2 cloudformation package \
-                --template-file ./deploy/roles/cloudformation/files/eks-root.json --output-template /tmp/packed-eks-stacks.json \
+                --template-file eks-root.json --output-template /tmp/packed-eks-stacks.json \
                 --s3-bucket mkallali-eks-cfn-us-east-2 --use-json
                  '''
       }
