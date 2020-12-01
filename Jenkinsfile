@@ -15,12 +15,20 @@ pipeline {
       steps {
         sh 'echo "TEST PIPELINE"'
         sh '''
-                whoami
+                pwd
                 cd deploy/roles/cloudformation/files/
                 aws --region us-east-2 cloudformation package \
                 --template-file eks-root.json --output-template /tmp/packed-eks-stacks.json \
                 --s3-bucket mkallali-eks-cfn-us-east-2 --use-json
                  '''
+      }
+       steps {
+        sh 'echo "DEPLOY CFN "'
+        sh '''
+                pwd
+                cd deploy/roles/cloudformation/files/
+                aws cloudformation deploy --template-file /tmp/packed-eks-stacks.json --stack-name test-stack
+            '''
       }
     }
 
