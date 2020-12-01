@@ -22,7 +22,11 @@ pipeline {
                 --s3-bucket mkallali-eks-cfn-us-east-2 --use-json
                  '''
       }
-       steps {
+
+    }
+
+ stage('CFN-deploy') {
+           steps {
         sh 'echo "DEPLOY CFN "'
         sh '''
                 pwd
@@ -30,8 +34,7 @@ pipeline {
                 aws cloudformation deploy --template-file /tmp/packed-eks-stacks.json --stack-name test-stack
             '''
       }
-    }
 
-
+ }
   }
 }
