@@ -30,7 +30,7 @@ pipeline {
         sh 'echo "DEPLOY CFN "'
         sh '''
                 pwd
-                cd deploy/roles/cloudformation/files/
+                cd deploy/
                 ansible-playbook eks-cluster.yml
             '''
       }
