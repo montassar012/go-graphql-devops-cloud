@@ -14,7 +14,7 @@ env: "dev"
 # ROLES globals #
 #################
 
-region: "eu-west-1"
+region: "us-east-2"
 
 # (THIS) eks_cluster_name: used for EKS service to set an exactly cluster's name - "{{ eks_cluster_name }}"
 # (AUTO) eks_cluster_stack_name: used for CloudFormation service to format a stack's name as "eksctl-{{ eks_cluster_name }}-cluster"
