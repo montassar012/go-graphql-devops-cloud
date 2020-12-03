@@ -74,7 +74,8 @@ pipeline {
               steps{
                   echo 'Checking if app is up...'
                   withAWS(credentials: 'aws-static', region: 'us-east-2') {
-                     sh "curl aeb08a18019f746cca36a7e0414db9b9-1386292806.us-east-2.elb.amazonaws.com:8082"
+                     sh "aws --region us-east-2 eks update-kubeconfig --name mkallali-eks-dev"
+                     sh "curl $(kubectl get svc graphql-service -o jsonpath={$.status.loadBalancer.ingress[0].hostname}):8082"
                     
                   }
                }
