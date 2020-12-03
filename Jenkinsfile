@@ -26,7 +26,7 @@ pipeline {
             '''
       }
       }
-
+ }
 
 
     stage('Build') {
