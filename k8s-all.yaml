@@ -105,23 +105,3 @@ spec:
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
 
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ingress-graphql
-  annotations:
-    ingress.kubernetes.io/force-ssl-redirect: "true"
-    kubernetes.io/ingress.class: "ingress-nginx"
-
-spec:
-  rules:
-  - host: go-graphql.mkallali.net
-    http:
-      paths:
-      - path: /
-        backend:
-          service:
-              name: graphql-service
-          port:
-                number: 8082
