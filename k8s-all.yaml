@@ -3,6 +3,7 @@
  metadata:
    name: mysql
  spec:
+   replicas: 1
    selector:
      matchLabels:
        app: mysql
@@ -33,6 +34,7 @@ kind: Deployment
 metadata:
   name: graphql
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: graphql
@@ -112,7 +114,6 @@ metadata:
     ingress.kubernetes.io/force-ssl-redirect: "true"
     kubernetes.io/ingress.class: "ingress-nginx"
 
-
 spec:
   rules:
   - host: go-graphql.mkallali.net
@@ -120,5 +121,7 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: graphql-service
-          servicePort: 8082
+          service:
+              name: graphql-service
+          port:
+                number: 8082

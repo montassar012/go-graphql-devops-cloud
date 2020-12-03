@@ -2,33 +2,8 @@ pipeline {
   agent any
   stages {
 
-  stage('Upload CFN Template') {
-      steps {
-           dir('deploy') {
-        sh 'echo "TEST PIPELINE"'
-        sh '''
-                cd roles/cloudformation/files/
-                aws --region us-east-2 cloudformation package \
-                --template-file eks-root.json --output-template /tmp/packed-eks-stacks.json \
-                --s3-bucket mkallali-eks-cfn-us-east-2 --use-json
-                 '''
-      }
-      }
-    }
 
- stage('Create Infra') {
-           steps {
-                dir('deploy') {
-        sh 'echo "DEPLOY CFN "'
-        sh '''
-                pwd
-                ansible-playbook eks-cluster.yml
-            '''
-      }
-      }
- }
-
-
+      
     stage('Build') {
       steps {
            dir('deploy') {
@@ -86,7 +61,6 @@ pipeline {
                   echo 'Deploying to AWS...'
                   withAWS(credentials: 'aws-static', region: 'us-east-2') {
                       sh "aws --region us-east-2 eks update-kubeconfig --name mkallali-eks-dev"
-                    //  sh "kubectl config use-context arn:aws:eks:us-east-2:960920920983:cluster/mkallali-eks-dev"
                       sh "kubectl apply -f k8s-all.yaml"
                       sh "kubectl get nodes"
                       sh "kubectl get deployments"
@@ -99,7 +73,7 @@ pipeline {
               steps{
                   echo 'Checking if app is up...'
                   withAWS(credentials: 'aws-static', region: 'us-east-2') {
-                     sh "curl ad0e6a88870a9477989eb79393197b59-2120449898.us-east-2.elb.amazonaws.com:8082"
+                     sh "curl aeb08a18019f746cca36a7e0414db9b9-1386292806.us-east-2.elb.amazonaws.com:8082"
                     
                   }
                }
