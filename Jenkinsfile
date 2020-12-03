@@ -39,6 +39,11 @@ pipeline {
                   sh 'docker build --tag go-graphql-app .'
               }
          }
+         stage('Security Scan') {
+              steps { 
+                 aquaMicroscanner imageName: 'graphql:latest', notCompliesCmd: 'exit 1', onDisallowed: 'fail', outputFormat: 'html'
+              }
+         }
          stage('Push Docker Image') {
               steps {
                   withDockerRegistry([url: "", credentialsId: "docker-reg"]) {
