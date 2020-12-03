@@ -75,7 +75,7 @@ pipeline {
                   echo 'Checking if app is up...'
                   withAWS(credentials: 'aws-static', region: 'us-east-2') {
                      sh "aws --region us-east-2 eks update-kubeconfig --name mkallali-eks-dev"
-                     sh "curl $(kubectl get svc graphql-service -o jsonpath={$.status.loadBalancer.ingress[0].hostname}):8082"
+                     sh "curl `kubectl get svc graphql-service -o jsonpath={$.status.loadBalancer.ingress[0].hostname}`:8082"
                     
                   }
                }
