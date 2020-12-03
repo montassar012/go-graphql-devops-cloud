@@ -3,16 +3,19 @@ pipeline {
   stages {
     stage('Build') {
       steps {
+          
         sh 'echo "TEST PIPELINE"'
         sh '''
                  echo "Multiline shell step to work"
                  ls -alh
                  whoami
                  '''
+      
       }
     }
-    stage('CFN-TEMPLATE') {
+    stage('Upload CFN Template') {
       steps {
+           dir('deploy') {
         sh 'echo "TEST PIPELINE"'
         sh '''
                 pwd
@@ -22,17 +25,19 @@ pipeline {
                 --s3-bucket mkallali-eks-cfn-us-east-2 --use-json
                  '''
       }
-
+      }
     }
 
- stage('create-infra') {
+ stage('Create Infra') {
            steps {
+                dir('deploy') {
         sh 'echo "DEPLOY CFN "'
         sh '''
                 pwd
                 cd deploy/
                 ansible-playbook eks-cluster.yml
             '''
+      }
       }
 
  }
