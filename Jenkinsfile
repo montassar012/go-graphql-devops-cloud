@@ -62,6 +62,7 @@ pipeline {
                   withAWS(credentials: 'aws-static', region: 'us-east-2') {
                       sh "aws --region us-east-2 eks update-kubeconfig --name mkallali-eks-dev"
                       sh "kubectl apply -f k8s-all.yaml"
+                      sh "sleep 60"
                       sh "kubectl get nodes"
                       sh "kubectl get deployments"
                       sh "kubectl get pod -o wide"
@@ -83,7 +84,7 @@ pipeline {
                   echo 'Checking rollout...'
                   withAWS(credentials: 'aws-static', region: 'us-east-2') {
                      sh "aws --region us-east-2 eks update-kubeconfig --name mkallali-eks-dev"
-                     sh "kubectl rollout status deployments/mkallali-eks-dev"
+                     sh "kubectl rollout status deployments/graphql"
                   }
               }
         }
