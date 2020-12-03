@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-          
+           dir('deploy') {
         sh 'echo "TEST PIPELINE"'
         sh '''
                  echo "Multiline shell step to work"
@@ -12,7 +12,7 @@ pipeline {
                  '''
       
       }
-    }
+    }}
     stage('Upload CFN Template') {
       steps {
            dir('deploy') {
