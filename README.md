@@ -29,18 +29,20 @@ We will use :
 
 - eksctl: to create a cluster itself using resources created by CloudFormation
 
-
-1 - Ansible will use the cloudformation module to create an  infrastructure
+It will be like this : 
+  
+ * 1 : Ansible will use the cloudformation module to create an  infrastructure
 then by using Outputs of the stack created by CloudFormation. 
-2 - Ansible will generate a config file for the eksctl.
-3 - Ansible calls eksctl passing the config-file and will create a cluster
+ * 2 : Ansible will generate a config file for the eksctl.
+ * 3 : Ansible calls eksctl passing the config-file and will create a cluster
 
 
 ## the CloudFormation stack.
 
-We need to create:
+For the CFN stack we will create:
 
-1 VPC
-two public subnets for Application Load Balancers, Bastion hosts, Internet Gateways
-two private subnets for Kubernetes Worker Nodes EC2, NAT Gateways
-EKS AMI for Kubernetes Worker Nodes eksctl will choose automatically
+- 1 VPC
+- two public subnets for Application Load Balancers, 
+-  Internet Gateways
+- two private subnets for Kubernetes Worker Nodes EC2, NAT Gateways
+- EKS AMI for Kubernetes Worker Nodes eksctl will choose automatically
