@@ -22,8 +22,8 @@
            value:  dbpass
          resources:
            limits:
-             memory: "128Mi"
-             cpu: "100m"
+             memory: "512Mi"
+             cpu: "500m"
          ports:
          - containerPort: 3306
 
@@ -34,7 +34,7 @@ kind: Deployment
 metadata:
   name: graphql
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: graphql
@@ -55,8 +55,8 @@ spec:
           value: mysql-service
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "100m"
+            memory: "512Mi"
+            cpu: "500m"
         ports:
         - containerPort: 8080
       restartPolicy: Always

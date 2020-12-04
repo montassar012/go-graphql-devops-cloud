@@ -4,7 +4,7 @@ pipeline {
 
 
       
-    stage('Build') {
+    stage('CHECK') {
       steps {
            dir('deploy') {
         sh 'echo "TEST PIPELINE"'
@@ -16,6 +16,33 @@ pipeline {
       
       }
     }}
+    stage('Upload CFN Template') {
+      steps {
+           dir('deploy') {
+        sh 'echo "TEST PIPELINE"'
+        sh '''
+                cd roles/cloudformation/files/
+                aws --region us-east-2 cloudformation package \
+                --template-file eks-root.json --output-template /tmp/packed-eks-stacks.json \
+                --s3-bucket mkallali-eks-cfn-us-east-2 --use-json
+                 '''
+      }
+      }
+    }
+
+ stage('Create Infra') {
+           steps {
+                dir('deploy') {
+        sh 'echo "DEPLOY CFN "'
+        sh '''
+                pwd
+                ansible-playbook eks-cluster.yml
+            '''
+      }
+      }
+
+ }
+
 
   stage('Lint Dockerfile') {
             steps {

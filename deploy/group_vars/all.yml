@@ -35,7 +35,7 @@ vpc_cidr_block: "10.1.0.0/16"
 k8s_version: 1.18
 k8s_worker_nodes_group_name: "worker-nodes"
 k8s_worker_nodes_instance_type: "t2.micro"
-k8s_worker_nodes_capacity: 2
+k8s_worker_nodes_capacity: 4
 
 eks_root_user_name: "eks-root"
 eks_root_user_arn: "arn:aws:iam::$AWS_ACCOUNT_ID:user/eks-root"
