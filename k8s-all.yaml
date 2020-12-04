@@ -22,7 +22,7 @@
            value:  dbpass
          resources:
            limits:
-             memory: "100Mi"
+             memory: "128Mi"
              cpu: "100m"
          ports:
          - containerPort: 3306
@@ -55,7 +55,7 @@ spec:
           value: mysql-service
         resources:
           limits:
-            memory: "100Mi"
+            memory: "128Mi"
             cpu: "100m"
         ports:
         - containerPort: 8080
